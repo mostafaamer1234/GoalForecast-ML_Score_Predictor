@@ -1,65 +1,349 @@
-# FootyForecast
+# GoalForecast - ML Football/Soccer score Predictor
 
-FootyForecast combines a FastAPI backend with a React/Vite frontend to deliver data-driven football predictions for upcoming fixtures. The project focuses on Premier League matchups, blending curated team strength/form profiles with machine learning models to produce win/draw/loss probabilities, suggested outcomes, and projected scorelines.
+GoalForecast is an end-to-end football and soccer score prediction platform that combines ensemble machine learning models with a FastAPI backend and a React/Vite frontend to deliver data-driven predictions for Premier League, La Liga, and NFL games. It uses an ensemble of machine learning models to predict scorelines and win/draw/loss probabilities.
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Machine Learning Overview](#machine-learning-overview)
+- [Installation](#installation)
+- [How to Run](#how-to-run)
+- [API](#api)
+- [Development Notes](#development-notes)
+- [Technology Stack](#technology-stack)
+- [License](#license)
+
+---
+
+## Overview
+
+FootyForecast follows a simple full-stack architecture:
+
+- React/Vite frontend (port 5173) for the user interface
+- FastAPI backend (port 8000) exposing prediction endpoints
+- Machine learning models (Random Forest + XGBoost) serialized as pickle files
+
+The typical workflow:
+
+1. Frontend fetches upcoming fixtures and sends prediction requests.
+2. Backend enriches teams with strength/form data and constructs feature vectors.
+3. ML ensemble model made up multiple models predicts home/away scores.
+4. Scores are converted into win/draw/loss probabilities.
+5. Frontend displays probabilities, suggested outcome, and projected scoreline.
+
+---
 
 ## Features
-- **Prediction API** powered by `FootballPredictionAgent` with Poisson-informed probability shaping and strength/form lookups for realistic EPL outputs.
-- **Interactive frontend** (React + Vite) that fetches predictions, shows probabilities, suggested picks, and club badges for each upcoming Premier League game.
-- **Batch support** for generating multiple predictions in one call.
 
-## Project structure
-- `backend/` — FastAPI service, model pipeline, API integrations, and team metadata.
-  - `main.py` exposes `/predict` and `/batch_predict` endpoints and initializes the prediction agent.
-  - `prediction_agent.py` contains the ML-driven prediction logic and probability shaping.
-  - `team_logos.py` maps normalized club names to badge URLs used by the frontend.
-- `src/` — React application (Vite) rendering upcoming fixtures and the Premier League Predictions section.
-  - `src/pages/PremierLeague.jsx` fetches fixtures, requests predictions, and displays badges alongside probabilities.
+- Ensemble ML models (Random Forest + XGBoost) for robust score predictions.
+- Win/draw/loss probabilities derived from predicted scorelines.
+- Team strength profiles and recent form features (last 5 matches, home advantage).
+- Support for multiple competitions: Premier League, La Liga, and NFL.
+- REST API with single and batch prediction endpoints.
+- React frontend with dedicated pages for EPL, La Liga, and NFL predictions.
+- Works out of the box with synthetic data; can optionally train on real historical data via API-Football.
 
-## Prerequisites
-- Node.js 18+
-- Python 3.10+
+---
 
-## Backend setup
-1. Create a virtual environment and install dependencies:
+
+## Project Structure
+
+```text
+GoalForecast/
+├── backend/                    # FastAPI backend
+│   ├── main.py                # FastAPI app and routes
+│   ├── prediction_agent.py    # ML prediction agent and probability shaping
+│   ├── model_trainer.py       # Model training and evaluation
+│   ├── feature_engineering.py # Feature extraction
+│   ├── data_generator.py      # Synthetic data generation
+│   ├── historical_data_fetcher.py  # Real match data from API-Football
+│   ├── train_from_csv.py      # Training from CSV
+│   ├── train_with_real_data.py # Training on real API data
+│   ├── interactive_predictor.py # CLI predictions
+│   ├── test_api.py            # API tests
+│   ├── test_api_connection.py # Connection checks
+│   ├── team_logos.py          # Team logo mappings
+│   └── requirements.txt       # Python dependencies
+│
+├── src/                       # React frontend
+│   ├── main.jsx               # React entry
+│   ├── App.jsx                # Main app component
+│   ├── lib/
+│   │   └── api.js             # API client utilities
+│   ├── components/
+│   │   ├── Navbar.jsx
+│   │   └── Footer.jsx
+│   ├── pages/
+│   │   ├── Home.jsx
+│   │   ├── PremierLeague.jsx
+│   │   ├── LaLiga.jsx
+│   │   ├── NFL.jsx
+│   │   └── Pages.css
+│   ├── assets/                # Images, badges, etc.
+│   └── index.css
+│
+├── *.pkl                      # Trained model files
+├── package.json
+├── vite.config.js
+├── index.html
+└── README.md
+
+
+Key files:
+
+* `backend/main.py`: FastAPI application and API endpoints.
+* `backend/prediction_agent.py`: Prediction logic and probability shaping.
+* `backend/model_trainer.py`: Model training and evaluation.
+* `src/pages/PremierLeague.jsx`: Main EPL prediction UI.
+* `src/lib/api.js`: Frontend API client.
+
+---
+
+## Machine Learning Overview
+
+GoalForecast uses an ensemble of tree-based regressors to predict home and away goals:
+
+* Random Forest Regressor (multi-output)
+* XGBoost Regressor (multi-output)
+* Final predictions are the average of both models.
+
+Core feature groups:
+
+* Team statistics (e.g., summary stats of player ratings).
+* Recent form (last 5 matches: points, win/draw/loss counts, momentum).
+* Comparative features (rating difference, form difference, strength ratio).
+* Home advantage indicator.
+
+Predicted scores are transformed into win/draw/loss probabilities using a softmax-style transformation with temperature scaling and a neutral prior. The model is typically more reliable at predicting the match outcome than the exact scoreline.
+
+The system can train on:
+
+* Synthetic data (default, Poisson-based goal distributions).
+* Real historical data from API-Football (requires API key).
+* Custom CSV datasets.
+
+---
+
+## Installation
+
+### Prerequisites
+
+* Python 3.10+
+* Node.js 18+
+* npm or yarn
+* (Optional) API-Football key for real data
+
+### Backend Setup
+
+```bash
+git clone https://github.com/mostafaamer1234/GoalForecast.git
+cd GoalForecast
+
+cd backend
+python -m venv .venv
+source .venv/bin/activate    # On Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+(Optional) Add an API-Football key:
+
+```bash
+echo "API_KEY=your_api_football_key" > .env
+```
+
+Start the backend:
+
+```bash
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Frontend Setup
+
+From the project root:
+
+```bash
+npm install
+npm run dev
+```
+
+By default, the frontend expects the backend at `http://localhost:8000`. Update `src/lib/api.js` if your backend is hosted elsewhere.
+
+---
+
+## How to Run
+
+### Development
+
+1. Start the FastAPI backend:
+
    ```bash
    cd backend
-   python -m venv .venv
    source .venv/bin/activate
-   pip install -r requirements.txt
-   ```
-2. Add an API-Football key to `.env` in the `backend/` directory:
-   ```bash
-   echo "API_KEY=your_api_football_key" > .env
-   ```
-3. Start the FastAPI server (default port 8000):
-   ```bash
    uvicorn main:app --reload --host 0.0.0.0 --port 8000
    ```
 
-### Prediction endpoints
-- `POST /predict` — accepts `{ "home_team": "Arsenal", "away_team": "Chelsea" }` and returns normalized probabilities plus optional scorelines and reports.
-- `POST /batch_predict` — accepts a list of match objects (same shape as `/predict`) and returns an array of normalized prediction payloads.
+2. Start the React frontend in a new terminal:
 
-## Frontend setup
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-2. Run the development server (default port 5173):
    ```bash
    npm run dev
    ```
-3. Ensure the frontend can reach the backend (by default it calls `http://localhost:8000`). Update the API base URL in the frontend if you host the backend elsewhere.
 
-## How it works
-1. The frontend fetches upcoming Premier League fixtures, normalizes team names, and requests predictions for each pairing.
-2. The backend loads or trains the prediction model, enriches inputs with team-specific strength and form data, and produces probabilities.
-3. The frontend renders a dedicated **Premier League Predictions** section showing badges, suggested outcomes, percentage chances, and any projected scores returned by the API.
+3. Open `http://localhost:5173` in your browser and navigate to the league pages (e.g., Premier League) to view predictions.
 
-## Testing and linting
-- Frontend linting: `npm run lint`
-- Backend tests/examples: use the scripts in `backend/` (e.g., `test_api.py` or `test_api_connection.py`) after activating the virtual environment.
+### Quick Start (Synthetic Data)
 
-## Deployment notes
-- Expose the FastAPI server publicly or behind a reverse proxy, then configure the frontend to point to that URL.
-- Keep your `.env` file (API key) private and consider environment-specific keys for staging/production.
+If no trained model is found, the backend can auto-train on synthetic data. In that case:
+
+1. Start the backend.
+2. Start the frontend.
+3. Visit the Premier League page; predictions will use built-in team strength profiles and synthetic training data.
+
+---
+
+## API
+
+Base URL (local development):
+
+```text
+http://localhost:8000
+```
+
+### `GET /`
+
+Health check.
+
+**Response:**
+
+```json
+{ "message": "FootyForecast API running (EPL, LaLiga, ML Predictions Enabled)" }
+```
+
+### `POST /predict`
+
+Predict a single match outcome.
+
+**Request:**
+
+```json
+{
+  "home_team": "Arsenal",
+  "away_team": "Chelsea"
+}
+```
+
+**Response (example):**
+
+```json
+{
+  "probs": {
+    "home_win": 0.42,
+    "draw": 0.28,
+    "away_win": 0.30
+  },
+  "suggested": "home",
+  "home_score": 2,
+  "away_score": 1
+}
+```
+
+### `POST /batch_predict`
+
+Predict multiple matches in one call.
+
+**Request:**
+
+```json
+[
+  { "home_team": "Arsenal", "away_team": "Chelsea" },
+  { "home_team": "Liverpool", "away_team": "Manchester City" }
+]
+```
+
+**Response:**
+
+Array of prediction objects in the same format as `/predict`.
+
+Additional endpoints (if enabled in `main.py`) include league fixtures and tables:
+
+* `GET /fixtures`
+* `GET /table`
+* `GET /laliga_fixtures`
+* `GET /laliga_table`
+
+---
+
+## Development Notes
+
+### Testing
+
+Backend:
+
+```bash
+cd backend
+python test_api_connection.py   # Check API connectivity
+python test_api.py              # Test endpoints
+```
+
+Frontend:
+
+```bash
+npm run lint
+```
+
+### Training with Real Data
+
+1. Obtain an API-Football key.
+2. Set `API_KEY` in `backend/.env`.
+3. Run:
+
+   ```bash
+   cd backend
+   python train_with_real_data.py --leagues 39 140 --season 2023 --max-matches 200
+   ```
+
+You can also train from CSV files with `train_from_csv.py` or generate synthetic data with `data_generator.py`.
+
+### Deployment (High Level)
+
+* Expose the FastAPI backend (directly or behind a reverse proxy such as nginx).
+* Build the frontend (`npm run build`) and serve the static `dist/` folder.
+* Keep `.env` and API keys out of version control.
+* Configure CORS and HTTPS appropriately for production.
+
+---
+
+## Technology Stack
+
+### Backend
+
+- Python 3.10+
+- FastAPI
+- scikit-learn
+- XGBoost
+- pandas, numpy
+- joblib
+- uvicorn
+- python-dotenv
+- requests
+
+### Frontend
+
+- React 18
+- Vite
+- React Router
+- CSS3
+- (Optional) Framer Motion for animations
+
+---
+
+
+## License
+
+MIT License
+
+Copyright (c) 2025
+
