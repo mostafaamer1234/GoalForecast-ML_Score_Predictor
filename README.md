@@ -91,7 +91,7 @@ GoalForecast/
 ├── vite.config.js
 ├── index.html
 └── README.md
-
+```
 
 Key files:
 
