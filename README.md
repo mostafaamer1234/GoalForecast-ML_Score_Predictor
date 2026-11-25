@@ -1,6 +1,40 @@
-# GoalForecast - ML Football/Soccer score Predictor
+# GoalForecast: ML Football/Soccer Score Predictor
 
-GoalForecast is an full-stack machine learning football and soccer score prediction platform that combines ensemble machine learning models with a FastAPI backend and a React/Vite frontend to deliver data-driven predictions for Premier League, La Liga, and NFL games. It uses an ensemble of machine learning models to predict scorelines and win/draw/loss probabilities.
+![CI](https://github.com/mostafaamer1234/GoalForecast-ML_Score_Predictor/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![React](https://img.shields.io/badge/frontend-React%20%2B%20Vite-61dafb)
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
+
+GoalForecast is a full-stack machine learning football and soccer score prediction platform that combines ensemble machine learning models with a FastAPI backend and a React/Vite frontend to deliver data-driven predictions for Premier League, La Liga, and NFL games. It uses an ensemble of machine learning models to predict scorelines and win/draw/loss probabilities.
+
+
+## Model evaluation on real matches
+
+`backtest/` runs a **walk-forward backtest on six real Premier League seasons** (2019/20–2024/25, data from football-data.co.uk). For each test season, models train only on earlier seasons, and every feature is computed only from matches played before kickoff:
+- Elo ratings with home advantage.
+- Last-5 goals for and against, and points.
+
+Tests in `backtest/test_backtest.py` check for look-ahead leakage.
+
+Results over the 2022/23, 2023/24 and 2024/25 seasons (1,140 matches; outcome = home win / draw / away win):
+
+| Model | Log loss (lower is better) | Brier (lower is better) | Accuracy |
+|---|---|---|---|
+| Base rates (H/D/A frequency) | 1.0639 | 0.6437 | 45.1% |
+| Logistic regression (Elo + form) | 0.9720 | 0.5786 | 54.4% |
+| XGBoost (Elo + form) | 0.9934 | 0.5890 | 54.4% |
+| Bookmaker odds (Bet365, de-margined) | 0.9487 | 0.5618 | 56.5% |
+
+What this shows:
+- The learned models clearly beat the base-rate baseline: log loss drops by about 0.09 and accuracy rises by more than 9 points.
+- They land within about 2 accuracy points of bookmaker prices, which is the strongest public baseline.
+- With these features the simpler, better-calibrated logistic model beats XGBoost. That makes it the right default.
+
+```bash
+pip install -r backend/requirements.txt pytest
+pytest -q backtest            # leakage and metric tests
+python backtest/backtest.py   # reproduce the table
+```
 
 ---
 

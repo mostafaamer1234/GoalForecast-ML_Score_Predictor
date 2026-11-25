@@ -786,7 +786,7 @@ function NFL() {
   const [topScorers, setTopScorers] = useState([]);
   const [recent, setRecent] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [errorMsg] = useState("");
   const [matchdaySize, setMatchdaySize] = useState(5);
 
   // NEW: Predictions state
@@ -821,7 +821,7 @@ function NFL() {
           });
 
           if (!cancelled && m.fixture?.id) next[m.fixture.id] = data;
-        } catch (e) {
+        } catch {
           // don’t break NFL page
         }
       }
@@ -872,13 +872,6 @@ function NFL() {
   // Helpers
   // -------------------------
   const getLogo = (team) => NFL_LOGOS[team] || DEFAULT_LOGO;
-
-  const renderFormBadges = (team) =>
-    (NFL_FORM[team] || []).map((r, i) => (
-      <span key={i} className={`form-badge form-${r.toLowerCase()}`}>
-        {r}
-      </span>
-    ));
 
   const extractPredictionView = (fixtureId) => {
     const fallback = FALLBACK_PREDICTIONS[fixtureId];
