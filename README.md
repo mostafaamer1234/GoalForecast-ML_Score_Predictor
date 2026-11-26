@@ -1,5 +1,7 @@
 # GoalForecast - ML Football/Soccer score Predictor
 
+**Live demo: [goalforecast.vercel.app](https://goalforecast.vercel.app)**. Pick any 2024/25 Premier League fixture and get home/draw/away probabilities from the backtested model, computed in the browser.
+
 GoalForecast is an full-stack machine learning football and soccer score prediction platform that combines ensemble machine learning models with a FastAPI backend and a React/Vite frontend to deliver data-driven predictions for Premier League, La Liga, and NFL games. It uses an ensemble of machine learning models to predict scorelines and win/draw/loss probabilities.
 
 ---
