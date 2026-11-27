@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About · GoalForecast</title>
+  <meta name="description" content="Pick any Premier League fixture and get home, draw and away probabilities from a model that was tested season by season against the bookmaker." />
+  <link rel="stylesheet" href="quiet.css" />
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <nav class="q-nav">
+    <div class="q-wrap">
+      <a class="q-brand" href="/">GoalForecast</a>
+      <div class="q-links">
+        <a href="/">This round</a>
+        <a href="#scoreboard">Backtest</a>
+        <a href="#calibration">Calibration</a>
+        <a href="https://github.com/mostafaamer1234/GoalForecast-ML_Score_Predictor">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <header class="q-wrap q-hero">
+      <p class="q-eyebrow">Sports ML · Premier League</p>
+      <h1 class="q-title">Pick a fixture. <span class="q-muted">Get odds a model earned, not guessed.</span></h1>
+    </header>
+
+    <section class="q-wrap fixture" aria-label="Match predictor">
+      <div class="picker">
+        <label class="side">
+          <span class="q-caps">Home</span>
+          <select id="home" class="team"></select>
+        </label>
+        <button type="button" id="swap" class="swap" aria-label="Swap home and away">⇄</button>
+        <label class="side away-side">
+          <span class="q-caps">Away</span>
+          <select id="away" class="team"></select>
+        </label>
+      </div>
+
+      <div class="q-figures outcome">
+        <div class="q-figure"><div class="q-num" id="p-h">–</div><div class="q-label" id="l-h">Home win</div></div>
+        <div class="q-figure"><div class="q-num" id="p-d">–</div><div class="q-label">Draw</div></div>
+        <div class="q-figure"><div class="q-num" id="p-a">–</div><div class="q-label" id="l-a">Away win</div></div>
+      </div>
+      <div class="split" aria-hidden="true"><i id="b-h"></i><i id="b-d"></i><i id="b-a"></i></div>
+      <p class="q-small fair" id="fair"></p>
+
+      <div class="q-list form">
+        <div class="q-row head"><span></span><span class="q-caps" id="n-h">Home</span><span class="q-caps" id="n-a">Away</span></div>
+        <div class="q-row"><label>Elo rating</label><span class="q-val" id="elo-h"></span><span class="q-val" id="elo-a"></span></div>
+        <div class="q-row"><label>Points per game, last 5</label><span class="q-val" id="pts-h"></span><span class="q-val" id="pts-a"></span></div>
+        <div class="q-row"><label>Goals scored per game, last 5</label><span class="q-val" id="gf-h"></span><span class="q-val" id="gf-a"></span></div>
+        <div class="q-row"><label>Goals conceded per game, last 5</label><span class="q-val" id="ga-h"></span><span class="q-val" id="ga-a"></span></div>
+      </div>
+      <p class="q-note form-note">Team form is frozen after the last match of 2024/25. The model does not know about transfers, injuries or line-ups.</p>
+    </section>
+
+    <section class="q-wrap q-section" id="scoreboard">
+      <h2 class="q-h2">Tested like a forecast. <span class="q-muted">Not like a homework set.</span></h2>
+      <p class="q-lede lede-wide">Every season is predicted using only the seasons before it, then scored on probabilities, not just right-or-wrong picks. The bar shows how much of the gap between naive base rates and the bookmaker's de-margined odds each model closes on log loss.</p>
+      <table class="q-ranked board">
+        <thead><tr><th>Model</th><th>Log loss</th><th>Brier</th><th>Accuracy</th></tr></thead>
+        <tbody id="board"></tbody>
+      </table>
+      <p class="q-note board-note" id="board-note"></p>
+    </section>
+
+    <section class="q-wrap q-section" id="calibration">
+      <div class="calib">
+        <div>
+          <h2 class="q-h2">When it says 60%, <span class="q-muted">does it happen 60% of the time?</span></h2>
+          <p class="q-lede">Home-win probabilities for the 2024/25 season, grouped into six equal bins and compared with how often the home side actually won. Points on the diagonal mean the numbers can be taken at face value.</p>
+          <p class="q-note" id="calib-note"></p>
+        </div>
+        <svg id="calib-chart" viewBox="0 0 320 320" role="img" aria-label="Calibration chart of predicted versus actual home-win rate"></svg>
+      </div>
+    </section>
+
+    <section class="q-wrap q-section">
+      <h2 class="q-h2">How it works.</h2>
+      <div class="q-steps">
+        <div class="q-step"><h3 class="q-h3">Rate every team</h3><p>An Elo rating moves after each result, with a home-field bonus. It replays six seasons of real Premier League results in order.</p></div>
+        <div class="q-step"><h3 class="q-h3">Add recent form</h3><p>Goals scored, goals conceded and points over each side's last five matches, computed before kick-off so nothing leaks from the future.</p></div>
+        <div class="q-step"><h3 class="q-h3">Fit and score</h3><p>A multinomial logistic regression turns nine features into home, draw and away probabilities. XGBoost was tried too and did worse.</p></div>
+        <div class="q-step"><h3 class="q-h3">Run in your browser</h3><p>The fitted coefficients ship as a small JSON file, so this page computes the same probabilities as the Python model with no server.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="q-foot">
+    <div class="q-wrap">
+      <span>GoalForecast · Mostafa Amer · Data: football-data.co.uk</span>
+      <a href="https://github.com/mostafaamer1234/GoalForecast-ML_Score_Predictor/tree/portfolio-upgrade/backtest">Backtest source</a>
+    </div>
+  </footer>
+
+  <script src="about.js"></script>
+</body>
+</html>

@@ -165,7 +165,7 @@ const buildFallbackFixtures = () => {
 };
 
 function LaLiga() {
-  const [allMatches, setAllMatches] = useState([]);
+  const [, setAllMatches] = useState([]);
   const [matches, setMatches] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [topScorers, setTopScorers] = useState(LALIGA_TOP_SCORERS_FALLBACK);
@@ -192,7 +192,8 @@ function LaLiga() {
 
     if (future.length > 0) return future.slice(0, limit);
 
-    return upcoming.slice(0, limit);
+    // No future fixtures from the source: fall back to the generated near-term schedule.
+    return buildFallbackFixtures().slice(0, limit);
   };
 
   // -------------------------
@@ -215,7 +216,7 @@ function LaLiga() {
         let upcoming = selectUpcoming(fixtures, matchdaySize);
 
         if (upcoming.length === 0) {
-          upcoming = selectUpcoming(FALLBACK_FIXTURES, matchdaySize);
+          upcoming = selectUpcoming(buildFallbackFixtures(), matchdaySize);
         }
 
         if (!cancelled) {
@@ -225,7 +226,7 @@ function LaLiga() {
         }
       } catch (err) {
         console.error("LaLiga fixtures error:", err);
-        const fallback = selectUpcoming(FALLBACK_FIXTURES, matchdaySize);
+        const fallback = selectUpcoming(buildFallbackFixtures(), matchdaySize);
         if (!cancelled) {
           setAllMatches([]);
           setMatches(fallback);

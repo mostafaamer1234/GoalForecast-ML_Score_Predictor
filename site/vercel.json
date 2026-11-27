@@ -1,0 +1,5 @@
+{
+  "framework": null,
+  "cleanUrls": true,
+  "functions": { "api/live.py": { "maxDuration": 30 } }
+}

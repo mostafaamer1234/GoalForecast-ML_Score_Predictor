@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GoalForecast · Premier League odds for this round</title>
+  <meta name="description" content="Model odds for this round's Premier League fixtures next to the bookmakers', any custom matchup, and the live table with Elo and form." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b3d2e'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23c6ff3d' stroke-width='2.4'/%3E%3Cpath d='M16 7v18M7 16h18' stroke='%23c6ff3d' stroke-width='1.6'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800&family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="tool.css" />
+</head>
+<body>
+  <header class="bar">
+    <a class="logo" href="/"><span class="ball" aria-hidden="true"></span>GOALFORECAST</a>
+    <nav><a href="#round">This round</a><a href="#matchup">Any matchup</a><a href="#table">Table</a><a href="/about">Backtest</a><a href="https://github.com/mostafaamer1234/GoalForecast-ML_Score_Predictor">GitHub</a></nav>
+  </header>
+
+  <section class="hero">
+    <p class="season" id="season">Premier League</p>
+    <h1>Who wins<br /><span>this round?</span></h1>
+    <p class="sub" id="status">Loading the latest results and fixtures…</p>
+  </section>
+
+  <main>
+    <section id="round">
+      <div class="sec-head"><h2>This round</h2><p>Model odds from Elo and recent form, next to the bookmakers' average. Tap a match to open it on the scoreboard.</p></div>
+      <div class="fixtures" id="fixtures"><div class="fx skeleton"></div><div class="fx skeleton"></div><div class="fx skeleton"></div></div>
+    </section>
+
+    <section id="matchup">
+      <div class="sec-head"><h2>Any matchup</h2><p>Pick any two teams. The team on the left plays at home.</p></div>
+      <div class="board">
+        <div class="board-top">
+          <label class="team"><span class="sr">Home team</span><select id="home"></select></label>
+          <button class="swap" id="swap" type="button" aria-label="Swap home and away">⇄</button>
+          <label class="team away"><span class="sr">Away team</span><select id="away"></select></label>
+        </div>
+        <div class="led">
+          <div><b id="p-h">–</b><span id="l-h">Home win</span></div>
+          <div><b id="p-d">–</b><span>Draw</span></div>
+          <div><b id="p-a">–</b><span id="l-a">Away win</span></div>
+        </div>
+        <div class="split3"><i id="b-h"></i><i id="b-d"></i><i id="b-a"></i></div>
+        <table class="tape">
+          <tbody id="compare"></tbody>
+        </table>
+        <p class="fair" id="fair"></p>
+      </div>
+    </section>
+
+    <section id="table">
+      <div class="sec-head"><h2>Table</h2><p id="table-note">Standings with each club's Elo rating and last five results.</p></div>
+      <div class="tbl-wrap"><table class="league"><thead><tr><th>#</th><th class="l">Club</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th><th>Elo</th><th class="l">Form</th></tr></thead><tbody id="league"></tbody></table></div>
+    </section>
+  </main>
+
+  <footer class="foot">Results and fixtures from football-data.co.uk. Logistic regression on Elo and last-five form, backtested on three full seasons. For fun, not for betting. <a href="/about">See the backtest</a></footer>
+  <script src="tool.js"></script>
+</body>
+</html>
