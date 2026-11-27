@@ -6,6 +6,8 @@ Writes site/data.json with:
   * walk-forward metrics for 2022/23-2024/25 and a calibration curve for the 2024/25 test season
 
 The browser then computes home/draw/away probabilities for any pairing with the exact same model.
+Also writes site/api/_model.json (the same model plus the Elo and form state after the last
+bundled season) for the live function that brings the state up to date.
 
     python backtest/export_site_data.py
 """
@@ -42,6 +44,20 @@ def final_states(matches, window: int = 5) -> dict[str, dict[str, float]]:
         t: {"elo": round(elo.ratings[t], 2), "gf5": float(np.mean(gf[t])), "ga5": float(np.mean(ga[t])), "pts5": float(np.mean(pts[t]))}
         for t in teams
     }
+
+
+def replay_state(matches, window: int = 5) -> dict:
+    """Elo ratings and last-5 histories after every match, for site/api/live.py to continue from."""
+    elo = EloState()
+    gf, ga, pts = (defaultdict(lambda: deque(maxlen=window)) for _ in range(3))
+    for m in matches.itertuples(index=False):
+        h, a = m.HomeTeam, m.AwayTeam
+        elo.update(h, a, m.FTR)
+        gf[h].append(int(m.FTHG)); ga[h].append(int(m.FTAG)); gf[a].append(int(m.FTAG)); ga[a].append(int(m.FTHG))
+        pts[h].append({"H": 3, "D": 1, "A": 0}[m.FTR]); pts[a].append({"H": 0, "D": 1, "A": 3}[m.FTR])
+    return {"ratings": {t: round(r, 3) for t, r in elo.ratings.items()}, "gf": {t: list(q) for t, q in gf.items()},
+            "ga": {t: list(q) for t, q in ga.items()}, "pts": {t: list(q) for t, q in pts.items()},
+            "through": matches["Date"].max().strftime("%Y-%m-%d"), "last_season": str(matches["season"].max())}
 
 
 def calibration(df, season: str = "2425", bins: int = 6) -> list[dict]:
@@ -88,6 +104,11 @@ def main() -> None:
     }
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text(json.dumps(payload, indent=1))
+    # site/api/live.py continues the replay with later seasons fetched from football-data.co.uk
+    live = {k: payload[k] for k in ("features", "home_advantage", "scaler", "coef", "intercept", "class_order")}
+    live["window"] = 5
+    live["state"] = replay_state(matches)
+    (OUT.parent / "api" / "_model.json").write_text(json.dumps(live, separators=(",", ":")))
     print(f"wrote {OUT} ({len(payload['teams'])} teams)")
 
 
